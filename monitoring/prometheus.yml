@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'stub-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['stub:8080']
+
+remote_write:
+  - url: 'http://influxdb:8086/api/v2/write?org=myorg&bucket=mybucket&precision=ns'
+    bearer_token: 'adminpass'
