@@ -10,8 +10,4 @@
 
 ## Как запустить “заглушку” (пункт 1)
 
-```bash
-cd project-root/stub-service
-mvn clean package
-# локальный запуск
-java -jar target/stub-demo-0.0.1-SNAPSHOT.jar
+StubDemoApplication.java
