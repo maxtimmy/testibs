@@ -1,12 +1,14 @@
 services:
 
-  # 1) Наш stub-сервис
+  # 1)  stub-сервис
   stub:
-    build: .                          # Dockerfile в корне проекта
+    build:
+      context: ../stub-service
+      dockerfile: Dockerfile
     ports:
       - "8081:8080"
 
-  # 2) Prometheus для сбора метрик
+  # 2) Prometheus
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -14,7 +16,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
-  # 3) InfluxDB v2 для хранения метрик
+  # 3) InfluxDB v2
   influxdb:
     image: influxdb:2.6
     ports:
@@ -28,7 +30,7 @@ services:
       DOCKER_INFLUXDB_INIT_RETENTION: 7d
 
 
-  # 4) Grafana для дашбордов
+  # 4) Grafana
   grafana:
     image: grafana/grafana:latest
     ports:
