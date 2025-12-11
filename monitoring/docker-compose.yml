@@ -1,4 +1,22 @@
 services:
+
+  # 1)  stub-сервис
+  stub:
+    build:
+      context: ../stub-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+
+  # 2) Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  # 3) InfluxDB v2
   influxdb:
     image: influxdb:2.6
     container_name: monitoring-influxdb-1
@@ -16,6 +34,7 @@ services:
       - influxdb-data:/var/lib/influxdb2
     networks: [monnet]
 
+  # 4) Grafana
   grafana:
     image: grafana/grafana:10.4.2
     container_name: monitoring-grafana-1
@@ -26,28 +45,4 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - influxdb
-    networks: [monnet]
-
-  telegraf:
-    image: telegraf:1.30
-    container_name: monitoring-telegraf-1
-    depends_on: [influxdb, stub]
-    networks: [monnet]
-    volumes:
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-
-  stub:
-    build:
-      context: ./stub
-      dockerfile: Dockerfile
-    image: monitoring-stub:latest
-    container_name: monitoring-stub-1
-    ports:
-      - "8080:8080"
-    networks: [monnet]
-
-networks:
-  monnet:
-
-volumes:
-  influxdb-data:
+      - prometheus
