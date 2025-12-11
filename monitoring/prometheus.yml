@@ -1,12 +1,19 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 5s
+  scrape_timeout: 5s
 
 scrape_configs:
-  - job_name: 'stub-app'
+  - job_name: 'stub'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['stub:8080']
 
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
 remote_write:
-  - url: 'http://influxdb:8086/api/v2/write?org=myorg&bucket=mybucket&precision=ns'
-    bearer_token: 'adminpass'
+  - url: "http://telegraf:9201/write"
+    queue_config:
+      max_samples_per_send: 2000
+      batch_send_deadline:

@@ -1,0 +1,52 @@
+{
+  "title": "Stub Monitoring (InfluxDB/Flux)",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "RPS (POST /test)",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "INFLUX_FLUX" },
+          "queryType": "flux",
+          "query": "from(bucket:\"mybucket\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_server_requests_seconds_count\")\n  |> filter(fn: (r) => (exists r.method && r.method == \"POST\") && (exists r.uri && r.uri == \"/test\"))\n  |> derivative(unit: 1s, nonNegative: true)\n  |> aggregateWindow(every: 10s, fn: mean)\n  |> yield(name: \"rps\")"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "req/s" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Макс. длительность запроса (ms)",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "INFLUX_FLUX" },
+          "queryType": "flux",
+          "query": "from(bucket:\"mybucket\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_server_requests_seconds_max\")\n  |> filter(fn: (r) => (exists r.method && r.method == \"POST\") && (exists r.uri && r.uri == \"/test\"))\n  |> map(fn: (r) => ({ r with _value: r._value * 1000.0 }))\n  |> aggregateWindow(every: 10s, fn: max)\n  |> yield(name: \"max_ms\")"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Запросы по статусам (count)",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "influxdb", "uid": "INFLUX_FLUX" },
+          "queryType": "flux",
+          "query": "from(bucket:\"mybucket\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"http_server_requests_seconds_count\")\n  |> filter(fn: (r) => exists r.status)\n  |> group(columns: [\"status\"]) \n  |> aggregateWindow(every: 1m, fn: sum)\n  |> yield(name: \"by_status\")"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 }
+    }
+  ]
+}
